@@ -2,5 +2,6 @@ data/
 *.jpg
 slurm*
 results/
-raw_data/*.npy
 gif/
+*.png
+raw_data/

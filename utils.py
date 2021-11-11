@@ -76,6 +76,10 @@ def save_gif(path, fps, fixed_noise=False):
     os.makedirs("gif/", exist_ok=True)
     imageio.mimsave("gif/"+category +'_animated.gif', gif, fps=fps)
 
-    
-
+def txt2list(filename):
+    f = open(filename + ".txt", "r", encoding="UTF-8")
+    ret = []
+    for line in f:
+        ret.append(line.rstrip())
+    return ret
     

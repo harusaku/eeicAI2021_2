@@ -4,3 +4,4 @@ slurm*
 results/
 raw_data/*.npy
 gif/
+__pycache__/

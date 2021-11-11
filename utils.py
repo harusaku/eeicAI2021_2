@@ -14,7 +14,7 @@ from dataset import MyDataset
 #######################################
 ## 使うカテゴリの名前を代入          ##
 #######################################
-category = "book"
+category = "apple"
 
 def get_data_loader(batch_size):
     transform = transforms.Compose([

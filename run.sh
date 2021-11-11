@@ -4,4 +4,4 @@
 export PATH=/usr/local/cuda/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
-python3 sample_DCgan.py
+python3 sample_DCgan.py --num-epochs 1

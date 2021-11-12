@@ -4,4 +4,8 @@ slurm*
 results/
 gif/
 *.png
+*.npy
+*.gif
 raw_data/
+sample_clip_fig/
+filtered_data/

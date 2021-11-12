@@ -4,6 +4,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
+import os
 
 #######################################
 ## 使うカテゴリの名前を代入          ##
@@ -80,5 +81,6 @@ for s in ["good", "bad"]:
     label = s
 
     fig.text(0.5, 0.04, label, ha='center')
-    fig.savefig(category+"_"+s+"_dataset"+'.png')
+    os.makedirs("sample_clip_fig",exist_ok=True)
+    fig.savefig("sample_clip_fig/"+category+"_"+s+"_dataset"+'.png')
 print("good_count:",good_count)

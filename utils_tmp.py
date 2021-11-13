@@ -17,16 +17,17 @@ from dataset_tmp import MyDataset
 #######################################
 # category = "apple"
 # category_ls = ['airplane', 'apple', 'banana']
-
-def get_data_loader(batch_size, category_ls):
+features = None
+def get_data_loader(batch_size, category_ls, device='cpu'):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=(0.1307, ), std=(0.3081, ))])
-    train_dataset = MyDataset(category_ls,"./raw_data/", transform=transform)
+    train_dataset = MyDataset(category_ls,"./filtered_data/", transform=transform, device = device)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-    return train_loader
+    return train_loader, train_dataset.get_features()
+
 
 ### Added embedded features as a parameter
 def generate_images(epoch, path, category_ls, tensor_text_features, num_test_samples, netG, device, use_fixed=False):

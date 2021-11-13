@@ -16,11 +16,11 @@ from network import Generator, Discriminator
 from utils_tmp import get_data_loader, generate_images, save_gif, txt2list
 
 
-import clip
+# import clip
 ### To-do: replace all "noise"
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DCGANS MNIST')
-    parser.add_argument('--num-epochs', type=int, default=50)
+    parser.add_argument('--num-epochs', type=int, default=100)
     parser.add_argument('--ndf', type=int, default=32, help='Number of features to be used in Discriminator network')
     parser.add_argument('--ngf', type=int, default=32, help='Number of features to be used in Generator network')
     parser.add_argument('--nv', type=int, default=512, help='Size of a CLIP Embedded Tensor') # Changed to the size of the embedded tensor from CLIP.
@@ -40,14 +40,15 @@ if __name__ == '__main__':
         os.makedirs(opt.output_path, exist_ok=True)
 
     # Multi labels
-    label_ls = ['airplane', 'apple']# ['airplane', 'apple', 'banana']
-
-    # Gather MNIST Dataset    
-    train_loader = get_data_loader(opt.batch_size, label_ls)
+    # label_ls = ['airplane', 'apple', 'banana']# ['airplane', 'apple', 'banana']
+    label_ls = txt2list('categories')[0:16]
 
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Using", device)
+    
+    # Gather MNIST Dataset    
+    train_loader, test_features = get_data_loader(opt.batch_size, label_ls, device)
 
     # Define Discriminator and Generator architectures
     netG = Generator(opt.nc, opt.nv, opt.ngf).to(device)
@@ -67,16 +68,19 @@ if __name__ == '__main__':
     # fixed_noise = torch.randn(opt.num_test_samples, 100, 1, 1, device=device)
     
     ### CLIP Features
-    model, preprocess = clip.load("ViT-B/32", device=device)
-    tokenized_text = clip.tokenize(label_ls).to(device)
-    with torch.no_grad():
-        text_features = model.encode_text(tokenized_text)
-    dict_text_features = {}
-    for i in range(len(label_ls)):
-        dict_text_features[label_ls[i]] = text_features[i].cpu().numpy() # convert to tensors to numpy arrays
+    # test_ls = ['airplane', 'apple', 'banana', 'bicycle', 'airplane', 'apple', 'banana', 'bicycle', 'airplane', 'apple', 'banana', 'bicycle', 'airplane', 'apple', 'banana', 'bicycle']
+    # clip_model, preprocess = clip.load("ViT-B/32", device=device)
+    # tokenized_text = clip.tokenize(test_ls).to(device)
+    # with torch.no_grad():
+    #     test_features = clip_model.encode_text(tokenized_text)
+    
+    if test_features == None:
+        print('No feature')
+        os._exit(1)
+    test_features = test_features.reshape((len(label_ls), 512, 1, 1)).float().to(device)
 
     for epoch in range(opt.num_epochs):
-        for i, (real_images, labels) in enumerate(train_loader):
+        for i, (real_images, labels, text_features) in enumerate(train_loader):
             bs = real_images.shape[0]
             ##############################
             #   Training discriminator   #
@@ -91,8 +95,7 @@ if __name__ == '__main__':
             lossD_real.backward()
             D_x = output.mean().item()
 
-            tensor_text_features = torch.tensor([ dict_text_features[la] for la in labels ], device = device).reshape((bs, 512, 1, 1)).float()
-            fake_images = netG(tensor_text_features)
+            fake_images = netG(text_features.reshape((bs, 512, 1, 1)))
             # noise = torch.randn(bs, opt.nv, 1, 1, device=device)
             # fake_images = netG(noise)
             label.fill_(fake_label)
@@ -115,11 +118,16 @@ if __name__ == '__main__':
             D_G_z2 = output.mean().item()
             optimizerG.step()
 
-            if (i+1)%10 == 0:
+            if (i+1)%70 == 0:
                 print('Epoch [{}/{}], step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, Discriminator - D(G(x)): {:.2f}, Generator - D(G(x)): {:.2f}'.format(epoch+1, opt.num_epochs, 
                                                             i+1, num_batches, lossD.item(), lossG.item(), D_x, D_G_z1, D_G_z2))
         netG.eval()
-        generate_images(epoch, opt.output_path, label_ls, tensor_text_features, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
+        generate_images(epoch, opt.output_path, label_ls, test_features, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
+        
+        # Save model
+        path = opt.output_path + "model/model_" + str(epoch + 1)
+        torch.save(netG.state_dict(), path)
+
         netG.train()
 
     # Save gif:

@@ -8,4 +8,4 @@ ls = ['airplane', 'apple', 'banana']
 for word in ls:
     data = np.load('raw_data/full_numpy_bitmap_{}.npy'.format(word))
     with open('raw_data/{}.npy'.format(word), 'wb') as f:
-        np.save(f, data[0:10000])
+        np.save(f, data[0:1000])

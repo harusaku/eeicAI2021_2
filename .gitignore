@@ -3,4 +3,6 @@ data/
 slurm*
 results/
 raw_data/*.npy
+filtered_data/*.npy
 gif/
+__pycache__/*.pyc

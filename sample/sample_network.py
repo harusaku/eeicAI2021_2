@@ -1,11 +1,12 @@
 import torch.nn as nn
 import torch.nn.functional as F
+import torch
 
 class Generator(nn.Module):
     def __init__(self, nc, nz, ngf):
       super(Generator, self).__init__()
       self.network = nn.Sequential(
-          nn.ConvTranspose2d(nz, ngf*4, 4, 1, 0, bias=False),
+          nn.ConvTranspose2d(nz*2, ngf*4, 4, 1, 0, bias=False),
           nn.BatchNorm2d(ngf*4),
           nn.ReLU(True),
   
@@ -21,17 +22,24 @@ class Generator(nn.Module):
           nn.Tanh()
       )
   
-    def forward(self, input):
-      output = self.network(input)
+    def forward(self, input, noise):
+      output = self.network(torch.cat([input, noise], 1))
       return output
 
 class Discriminator(nn.Module):
-    def __init__(self, nc, ndf):
+    def __init__(self, nc, nz, ndf):
         super(Discriminator, self).__init__()
-        self.network = nn.Sequential(
-                
-                nn.Conv2d(nc, ndf, 4, 2, 1, bias=False),
+        self.conv_input = nn.Sequential(
+                nn.Conv2d(nc, int(ndf/2), 4, 2, 1, bias=False),
                 nn.LeakyReLU(0.2, inplace=True),
+        )
+
+        self.conv_label = nn.Sequential(
+                nn.Conv2d(nz, int(ndf/2), 4, 2, 1, bias=False),
+                nn.LeakyReLU(0.2, inplace=True),
+        )
+
+        self.network_concated = nn.Sequential(
                 
                 nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
                 nn.BatchNorm2d(ndf * 2),
@@ -44,6 +52,10 @@ class Discriminator(nn.Module):
                 nn.Conv2d(ndf * 4, 1, 4, 1, 0, bias=False),
                 nn.Sigmoid()
             )
-    def forward(self, input):
-        output = self.network(input)
+
+    def forward(self, input, label):
+        x = self.conv_input(input)
+        y = self.conv_label(label)
+        input_concated = torch.cat([x,y],1)
+        output = self.network_concated(input_concated)
         return output.view(-1, 1).squeeze(1)

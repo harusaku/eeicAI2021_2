@@ -9,7 +9,7 @@ import natsort
 from glob import glob
 import os
 
-from dataset import MyDataset
+from sample_dataset import MyDataset
 
 #######################################
 ## 使うカテゴリの名前を代入          ##
@@ -20,7 +20,7 @@ def get_data_loader(batch_size):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=(0.1307, ), std=(0.3081, ))])
-    train_dataset = MyDataset(category,"./raw_data/", transform=transform)
+    train_dataset = MyDataset(category,"../raw_data/", transform=transform)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)

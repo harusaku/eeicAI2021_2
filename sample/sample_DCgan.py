@@ -11,8 +11,8 @@ import numpy as np
 from torch.autograd import Variable
 from torchvision.utils import save_image
 
-from network import Generator, Discriminator
-from utils import get_data_loader, generate_images, save_gif
+from sample_network import Generator, Discriminator
+from sample_utils import get_data_loader, generate_images, save_gif
 
 
 if __name__ == '__main__':

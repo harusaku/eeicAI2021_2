@@ -30,12 +30,12 @@ def get_data_loader(batch_size, category_ls, device='cpu'):
 
 
 ### Added embedded features as a parameter
-def generate_images(epoch, path, category_ls, tensor_text_features, num_test_samples, netG, device, use_fixed=False):
+def generate_images(epoch, path, category_ls, tensor_text_features, noise, num_test_samples, netG, device, use_fixed=False):
     size_figure_grid = int(math.sqrt(num_test_samples))
     title = None
     path += ('text_features' + "/")
 
-    generated_fake_images = netG(tensor_text_features)
+    generated_fake_images = netG(tensor_text_features, noise)
 
     fig, ax = plt.subplots(size_figure_grid, size_figure_grid, figsize=(6,6))
     for i, j in itertools.product(range(size_figure_grid), range(size_figure_grid)):
@@ -45,6 +45,7 @@ def generate_images(epoch, path, category_ls, tensor_text_features, num_test_sam
         i = k//4
         j = k%4
         ax[i,j].cla()
+        ax[i,j].set_title(category_ls[k])
         ax[i,j].imshow(generated_fake_images[k].data.cpu().numpy().reshape(28,28), cmap='Greys')
     label = 'Epoch_{}'.format(epoch+1)
     

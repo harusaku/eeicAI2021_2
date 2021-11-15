@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # Multi labels
     # label_ls = ['airplane', 'apple', 'banana']# ['airplane', 'apple', 'banana']
-    label_ls = txt2list('categories')[0:16]
+    label_ls = txt2list('categories')
 
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     # Define Discriminator and Generator architectures
     netG = Generator(opt.nc, opt.nv, opt.ngf).to(device)
-    netD = Discriminator(opt.nc, opt.ndf).to(device)
+    netD = Discriminator(opt.nc, opt.nv, opt.ndf).to(device)
 
     # loss function
     criterion = nn.BCELoss()
@@ -78,10 +78,15 @@ if __name__ == '__main__':
         print('No feature')
         os._exit(1)
     test_features = test_features.reshape((len(label_ls), 512, 1, 1)).float().to(device)
+    test_noise = torch.zeros(len(label_ls), opt.nv, 1, 1, device=device)
 
     for epoch in range(opt.num_epochs):
-        for i, (real_images, labels, text_features) in enumerate(train_loader):
+        for i, (real_images, _, text_features) in enumerate(train_loader):
             bs = real_images.shape[0]
+            input_features = text_features.reshape((bs, opt.nv, 1, 1))
+            print(input_features)
+            broadcasted_features = torch.zeros(bs, opt.nv, 28, 28, device = device)
+            discriminator_features = broadcasted_features + input_features # To allow conv inside netD
             ##############################
             #   Training discriminator   #
             ##############################
@@ -90,41 +95,57 @@ if __name__ == '__main__':
             real_images = real_images.to(device)
             label = torch.full((bs,), real_label, device=device)
 
-            output = netD(real_images)
+            output = netD(real_images, discriminator_features)
             lossD_real = criterion(output, label.type(torch.float))
             lossD_real.backward()
             D_x = output.mean().item()
-
-            fake_images = netG(text_features.reshape((bs, 512, 1, 1)))
-            # noise = torch.randn(bs, opt.nv, 1, 1, device=device)
-            # fake_images = netG(noise)
+            
+            # First show random noise to discrminator
+            noise = torch.randn(bs, opt.nv, 1, 1, device=device)
+            fake_images = netG(input_features, noise)
             label.fill_(fake_label)
-            output = netD(fake_images.detach())
+            output = netD(fake_images.detach(), discriminator_features)
             lossD_fake = criterion(output, label.type(torch.float))
             lossD_fake.backward()
             D_G_z1 = output.mean().item()
             lossD = lossD_real + lossD_fake
             optimizerD.step()
+            
+            output = netD(real_images, discriminator_features)
+            lossD_real = criterion(output, label.type(torch.float))
+            lossD_real.backward()
+            D_x = output.mean().item()
+            
+            # Then show text_features to the discriminator
+            # fake_images = netG(text_features.reshape((bs, opt.nv, 1, 1)))
+            # label.fill_(fake_label)
+            # output = netD(fake_images.detach())
+            # lossD_fake = criterion(output, label.type(torch.float))
+            # lossD_fake.backward()
+            # D_G_z1 = output.mean().item()
+            # lossD = lossD_real + lossD_fake
+            # optimizerD.step()
+
 
             ##########################
             #   Training generator   #
             ##########################
-
             netG.zero_grad()
             label.fill_(real_label)
-            output = netD(fake_images)
+            output = netD(fake_images, discriminator_features)
             lossG = criterion(output, label.type(torch.float))
             lossG.backward()
             D_G_z2 = output.mean().item()
             optimizerG.step()
 
-            if (i+1)%70 == 0:
+            if (i+1)%100 == 0:
                 print('Epoch [{}/{}], step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, Discriminator - D(G(x)): {:.2f}, Generator - D(G(x)): {:.2f}'.format(epoch+1, opt.num_epochs, 
                                                             i+1, num_batches, lossD.item(), lossG.item(), D_x, D_G_z1, D_G_z2))
         netG.eval()
-        generate_images(epoch, opt.output_path, label_ls, test_features, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
+        generate_images(epoch, opt.output_path, label_ls, test_features, test_noise, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
         
         # Save model
+        os.makedirs(opt.output_path + "model/", exist_ok=True)
         path = opt.output_path + "model/model_" + str(epoch + 1)
         torch.save(netG.state_dict(), path)
 

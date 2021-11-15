@@ -5,4 +5,4 @@ results/
 raw_data/*.npy
 filtered_data/*.npy
 gif/
-__pycache__/
+__pycache__/*.pyc

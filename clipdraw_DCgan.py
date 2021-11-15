@@ -12,8 +12,7 @@ from torch.autograd import Variable
 from torchvision.utils import save_image
 
 from network import Generator, Discriminator
-# from utils import get_data_loader, generate_images, save_gif, txt2list
-from utils_tmp import get_data_loader, generate_images, save_gif, txt2list
+from utils import get_data_loader, generate_images, save_gif, txt2list
 
 
 # import clip

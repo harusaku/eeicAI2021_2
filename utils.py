@@ -9,8 +9,7 @@ import natsort
 from glob import glob
 import os
 
-# from dataset import MyDataset
-from dataset_tmp import MyDataset
+from dataset import MyDataset
 
 #######################################
 ## 使うカテゴリの名前を代入          ##

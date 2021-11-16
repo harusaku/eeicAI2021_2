@@ -36,6 +36,8 @@ def generate_images(epoch, path, category_ls, tensor_text_features, noise, num_t
 
     generated_fake_images = netG(tensor_text_features, noise)
 
+    # restore to (-1,1) to (0,1)
+    generated_fake_images = (generated_fake_images+1)/2
     fig, ax = plt.subplots(size_figure_grid, size_figure_grid, figsize=(6,6))
     for i, j in itertools.product(range(size_figure_grid), range(size_figure_grid)):
         ax[i,j].get_xaxis().set_visible(False)
@@ -61,8 +63,8 @@ def save_gif(path, fps):
 
     for image in images:
         gif.append(imageio.imread(image))
-    os.makedirs("gif/", exist_ok=True)
-    imageio.mimsave("gif/"+ 'features' +'_animated.gif', gif, fps=fps)
+    os.makedirs(path+"gif/", exist_ok=True)
+    imageio.mimsave(path+"gif/"+ 'features' +'_animated.gif', gif, fps=fps)
 
 def txt2list(filename):
     f = open(filename + ".txt", "r", encoding="UTF-8")

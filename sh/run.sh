@@ -4,4 +4,4 @@
 export PATH=/usr/local/cuda/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
-python clipdraw_DCgan.py --output-path './results/all_data/'
+python clipdraw_DCgan.py --output-path './results/tricks3/' --num-epochs 50

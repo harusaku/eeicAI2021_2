@@ -24,7 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--ngf', type=int, default=32, help='Number of features to be used in Generator network')
     parser.add_argument('--nv', type=int, default=512, help='Size of a CLIP Embedded Tensor') # Changed to the size of the embedded tensor from CLIP.
     # Changed from --nz to --nv
-    parser.add_argument('--d-lr', type=float, default=0.0002, help='Learning rate for the discriminator')
+    parser.add_argument('--d-lr', type=float, default=0.000001, help='Learning rate for the discriminator')
     parser.add_argument('--g-lr', type=float, default=0.0002, help='Learning rate for the generator')
     parser.add_argument('--nc', type=int, default=1, help='Number of input channels. Ex: for grayscale images: 1 and RGB images: 3 ')
     parser.add_argument('--batch-size', type=int, default=128, help='Batch size')
@@ -57,7 +57,8 @@ if __name__ == '__main__':
     criterion = nn.BCELoss()
 
     # optimizers
-    optimizerD = optim.Adam(netD.parameters(), lr=opt.d_lr)
+    optimizerD = optim.Adam(netD.parameters(), lr=opt.d_lr) 
+    # optimizerD = optim.SGD(netD.parameters(), lr=opt.d_lr)#HACKS
     optimizerG = optim.Adam(netG.parameters(), lr=opt.g_lr)
     
     # initialize other variables
@@ -81,9 +82,11 @@ if __name__ == '__main__':
 
     for epoch in range(opt.num_epochs):
         for i, (real_images, _, text_features) in enumerate(train_loader):
+            # Normalize real_images to (-1,1)
+            real_images = real_images*2-1
             bs = real_images.shape[0]
             input_features = text_features.reshape((bs, opt.nv, 1, 1))
-            print(input_features)
+            
             broadcasted_features = torch.zeros(bs, opt.nv, 28, 28, device = device)
             discriminator_features = broadcasted_features + input_features # To allow conv inside netD
             ##############################
@@ -100,6 +103,8 @@ if __name__ == '__main__':
             D_x = output.mean().item()
             
             # First show random noise to discrminator
+            # TRICK2 Decaying noise:
+            # noise = torch.randn(bs, opt.nv, 1, 1, device=device)*(1-epoch/opt.num_epochs)
             noise = torch.randn(bs, opt.nv, 1, 1, device=device)
             fake_images = netG(input_features, noise)
             label.fill_(fake_label)
@@ -110,10 +115,11 @@ if __name__ == '__main__':
             lossD = lossD_real + lossD_fake
             optimizerD.step()
             
-            output = netD(real_images, discriminator_features)
-            lossD_real = criterion(output, label.type(torch.float))
-            lossD_real.backward()
-            D_x = output.mean().item()
+            # Train once again with D
+            # output = netD(real_images, discriminator_features)
+            # lossD_real = criterion(output, label.type(torch.float))
+            # lossD_real.backward()
+            # D_x = output.mean().item()
             
             # Then show text_features to the discriminator
             # fake_images = netG(text_features.reshape((bs, opt.nv, 1, 1)))
@@ -129,6 +135,9 @@ if __name__ == '__main__':
             ##########################
             #   Training generator   #
             ##########################
+
+            # TODO Train twice:
+
             netG.zero_grad()
             label.fill_(real_label)
             output = netD(fake_images, discriminator_features)

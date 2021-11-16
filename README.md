@@ -1,6 +1,8 @@
 # 人工知能演習2021 第2ターム 2班
 
-## データの取得方法
+## 実行方法
+### データの取得方法
+
 - 全データの取得
 ```
 $ python3 ./dataprocess/dataDownloader.py
@@ -15,20 +17,20 @@ $ python3 ./dataprocess/dataFiltering.py
 抽出する個数は各カテゴリーにつき最大1000個で、```./filtered_data```に```.npy```ファイルとして保存する。
 
 
-## ある一つのカテゴリーのお絵かき画像を生成する
+### ある一つのカテゴリーのお絵かき画像を生成する
 ```
 $ python3 sample/sample_DCgan.py -- category {category}
 ```
 categoryオプションにあるカテゴリーを指定することによって、そのカテゴリーの画像を生成することができる。その他学習のオプションはファイル内の実装を参照。
 
-## CLIPを含めたDCCGAN(Deep Convolutional Conditional GAN)
+### CLIPを含めたDCCGAN(Deep Convolutional Conditional GAN)
 ```
 $ python3 clipdraw_DCgan.py
 ```
 これによりCLIPによって生成されるベクトルを入力としたDCCGANを学習させることができる。学習のオプションはファイル内の実装を参照。
 (うまくいってないです、、、）
 
-## 上で学習した生成モデルを実際に動かす
+### 上で学習した生成モデルを実際に動かす
 ```
 $ python3 test_GAN.py
 ```

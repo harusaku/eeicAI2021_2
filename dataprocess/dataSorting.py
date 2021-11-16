@@ -14,7 +14,7 @@ category = "airplane"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
-dataset = np.load("../raw_data/" + category + ".npy")
+dataset = np.load("./raw_data/" + category + ".npy")
 text = clip.tokenize([category]).to(device)
 similarity = []
 good_dataset = []

@@ -31,6 +31,7 @@ if __name__ == '__main__':
     parser.add_argument('--use-fixed', action='store_true', help='Boolean to use fixed noise or not')
 
     parser.add_argument('--category', type=str, default="apple", help='choose the category')
+    parser.add_argument('--load_path', type=str, default='./filtered_data',help='path for the directry of the data')
 
     opt = parser.parse_args()
     print(opt)
@@ -38,7 +39,7 @@ if __name__ == '__main__':
         os.makedirs(opt.output_path, exist_ok=True)
 
     # Gather MNIST Dataset    
-    train_loader = get_data_loader(opt.batch_size, opt.category)
+    train_loader = get_data_loader(opt.batch_size, opt.category, opt.load_path)
 
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -103,10 +104,10 @@ if __name__ == '__main__':
                 print('Epoch [{}/{}], step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, Discriminator - D(G(x)): {:.2f}, Generator - D(G(x)): {:.2f}'.format(epoch+1, opt.num_epochs, 
                                                             i+1, num_batches, lossD.item(), lossG.item(), D_x, D_G_z1, D_G_z2))
         netG.eval()
-        generate_images(opt.category, epoch, opt.output_path, fixed_noise, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
+        generate_images(opt.load_path, opt.category, epoch, opt.output_path, fixed_noise, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
         netG.train()
 
     # Save gif:
-    save_gif(opt.category, opt.output_path, opt.fps, fixed_noise=opt.use_fixed)
+    save_gif(opt.load_path, opt.category, opt.output_path, opt.fps, fixed_noise=opt.use_fixed)
 
     print("finished (category is {})".format(opt.category))

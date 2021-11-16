@@ -1,6 +1,7 @@
 from genericpath import exists
 import torch
 import matplotlib.pyplot as plt
+from torch.serialization import load
 from torchvision import datasets, transforms
 import math
 import itertools
@@ -15,21 +16,22 @@ from sample_dataset import MyDataset
 ## 使うカテゴリの名前を代入          ##
 #######################################
 
-def get_data_loader(batch_size, category):
+def get_data_loader(batch_size, category, load_path):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=(0.1307, ), std=(0.3081, ))])
-    train_dataset = MyDataset(category,"./filtered_data/", transform=transform)
+    train_dataset = MyDataset(category,load_path, transform=transform)
 
     # Data Loader
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     return train_loader
 
-def generate_images(category, epoch, path, fixed_noise, num_test_samples, netG, device, use_fixed=False):
+def generate_images(load_path, category, epoch, path, fixed_noise, num_test_samples, netG, device, use_fixed=False):
+    load_path = load_path.replace("/","").replace(".","")
     z = torch.randn(num_test_samples, 100, 1, 1, device=device)
     size_figure_grid = int(math.sqrt(num_test_samples))
     title = None
-    path += ("filtered_data/" + category + "/")
+    path += (load_path + "/" + category + "/")
   
     if use_fixed:
         generated_fake_images = netG(fixed_noise)
@@ -58,8 +60,9 @@ def generate_images(category, epoch, path, fixed_noise, num_test_samples, netG, 
     fig.suptitle(title)
     fig.savefig(path+label+'.png')
 
-def save_gif(category, path, fps, fixed_noise=False):
-    path += "filtered_data/" + category +"/"
+def save_gif(load_path, category, path, fps, fixed_noise=False):
+    load_path = load_path.replace("/","").replace(".","")
+    path += load_path + "/" + category +"/"
     if fixed_noise==True:
         path += 'fixed_noise/'
         os.makedirs(path, exist_ok=True)
@@ -72,8 +75,8 @@ def save_gif(category, path, fps, fixed_noise=False):
 
     for image in images:
         gif.append(imageio.imread(image))
-    os.makedirs("gif/sample/filtered_data", exist_ok=True)
-    imageio.mimsave("gif/sample/filtered_data/"+category +'_animated.gif', gif, fps=fps)
+    os.makedirs("gif/sample/"+load_path+"/", exist_ok=True)
+    imageio.mimsave("gif/sample/"+load_path+"/"+category +'_animated.gif', gif, fps=fps)
 
 def txt2list(filename):
     f = open(filename + ".txt", "r", encoding="UTF-8")

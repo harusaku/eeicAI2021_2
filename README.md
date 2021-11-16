@@ -1,5 +1,11 @@
 # 人工知能演習2021 第2ターム 2班
 
+## 概要
+
+[Quick, Draw!](https://quickdraw.withgoogle.com/)のデータセットとGANを用いて、画像の生成を行った。
+
+我々の班の目標としては、このデータセットにないカテゴリーに関しても人間が書いたようなお絵かき画像が生成できるようにしたいということであった。そこで、[CLIP](https://openai.com/blog/clip/)を用いて、自然言語からそれに対応するベクトルを出力し、それをGANの入力に加えることで生成できるのではないかと思って試してみることにした。
+
 ## 実行方法
 ### データの取得方法
 
@@ -13,15 +19,17 @@
     ```
     $ python3 ./dataprocess/dataFiltering.py
     ```
-    [CLIP](https://github.com/openai/CLIP)を用いて、全データのうちそのカテゴリー名との類似度が閾値を超えてるもののみを抽出する。
+    CLIPを用いて、全データのうちそのカテゴリー名との類似度が閾値を超えてるもののみを抽出する。
 抽出する個数は各カテゴリーにつき最大1000個で、```./filtered_data```に```.npy```ファイルとして保存する。
+CLIPのインストールが必要。(インストール方法はCLIPの[github](https://github.com/openai/CLIP)を参照)
 
 
 ### ある一つのカテゴリーのお絵かき画像を生成する
 ```
-$ python3 sample/sample_DCgan.py -- category {category}
+$ python3 ./sample/sample_DCgan.py --category {category}
 ```
-categoryオプションにあるカテゴリーを指定することによって、そのカテゴリーの画像を生成することができる。その他学習のオプションはファイル内の実装を参照。
+CLIPを用いずに、categoryオプションにあるカテゴリーを指定することによって、そのカテゴリーの画像を生成することができる。その他学習のオプションはファイル内の実装を参照。
+特にload_pathオプションを```./raw_data/```にすることで元データすべてを使って学習することができる。
 
 ### CLIPを含めたDCCGAN(Deep Convolutional Conditional GAN)
 ```

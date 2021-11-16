@@ -4,16 +4,16 @@
 ### データの取得方法
 
 - 全データの取得
-```
-$ python3 ./dataprocess/dataDownloader.py
-```
-[Quick, Draw!](https://github.com/googlecreativelab/quickdraw-dataset)のデータセットのうちNumpy bitmaps(```.npy```)の全カテゴリーを```./raw_data/```にダウンロードする。
+    ```
+    $ python3 ./dataprocess/dataDownloader.py
+    ```
+    [Quick, Draw!](https://github.com/googlecreativelab/quickdraw-dataset)のデータセットのうちNumpy bitmaps(```.npy```)の全カテゴリーを```./raw_data/```にダウンロードする。
 
 - データのフィルタリング
-```
-$ python3 ./dataprocess/dataFiltering.py
-```
-[CLIP](https://github.com/openai/CLIP)を用いて、全データのうちそのカテゴリー名との類似度が閾値を超えてるもののみを抽出する。
+    ```
+    $ python3 ./dataprocess/dataFiltering.py
+    ```
+    [CLIP](https://github.com/openai/CLIP)を用いて、全データのうちそのカテゴリー名との類似度が閾値を超えてるもののみを抽出する。
 抽出する個数は各カテゴリーにつき最大1000個で、```./filtered_data```に```.npy```ファイルとして保存する。
 
 

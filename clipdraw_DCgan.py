@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     # optimizers
     optimizerD = optim.Adam(netD.parameters(), lr=opt.d_lr)
-    optimizerD_slow = optim.Adam(netD.parameters(), lr=opt.d_lr/2) 
+    optimizerD_slow = optim.Adam(netD.parameters(), lr=opt.d_lr*0.25) # Fine tuning the lr of D(fake)
     optimizerG = optim.Adam(netG.parameters(), lr=opt.g_lr)
     
 
@@ -147,7 +147,7 @@ if __name__ == '__main__':
                 lossG = criterion(output, label.type(torch.float))
                 lossG.backward()
                 D_G_z2 = output.mean().item()
-                optimizerG.step()
+            optimizerG.step()
 
             if (i+1)%50 == 0:
                 print('Epoch [{}/{}], step [{}/{}], d_loss_real: {:.4f}, d_loss_fake: {:.4f},  d_loss_wrong: {:.4f}, g_loss: {:.4f}'.format(epoch+1, opt.num_epochs, 

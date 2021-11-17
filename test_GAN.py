@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import clip
 
 from network import Generator
+from utils import txt2list
 
 device = "cpu"
 model_path = "./model/model_20categories"
@@ -14,6 +15,20 @@ netG = Generator(1, 512, G_feature).to(device)
 netG.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 test_noise = torch.zeros(1, 512, 1, 1, device=device)
 clip_model, preprocess = clip.load("ViT-B/32", device=device)
+
+# label_ls = txt2list('categories')
+# os.makedirs("test/trained_labels/", exist_ok=True)
+# tokenized_text = clip.tokenize(label_ls).to(device)
+# with torch.no_grad():
+#     all_features = clip_model.encode_text(tokenized_text)
+# for i in range(len(label_ls)):
+#     feature = all_features[i].reshape((1, 512, 1, 1)).float().to(device)
+#     generated_image = netG(feature, test_noise)
+#     image = (generated_image+1) / 2
+#     text = label_ls[i]
+#     plt.imshow(image.data.cpu().numpy().reshape(28,28), cmap='Greys')
+#     plt.savefig("test/trained_labels/"+text+".png")
+# print("Images generated from Quickdraw labels saved at test/trained_labels/")
 
 while True:
     input_text = input("What to draw?\n")
@@ -26,7 +41,7 @@ while True:
     plt.imshow(image.data.cpu().numpy().reshape(28,28), cmap='Greys')
     os.makedirs("test/", exist_ok=True)
     plt.savefig("test/"+input_text+".png")
-    print("Result generated at " + "./test/"+input_text+".png\n\n")
+    print("Result generated at " + "./test/"+input_text+".png\n")
 
 
 

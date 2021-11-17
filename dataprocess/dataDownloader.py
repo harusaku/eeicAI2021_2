@@ -3,7 +3,7 @@ import urllib.request
 import os
 
 categories = text2list("categories.txt")
-path = "../raw_data/"
+path = "./raw_data/"
 os.makedirs("raw_data",exist_ok=True)
 finished = 0
 all = len(categories)

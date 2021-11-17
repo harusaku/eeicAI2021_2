@@ -7,3 +7,5 @@ filtered_data/*.npy
 gif/
 __pycache__/*.pyc
 test/
+sample_clip_fig/
+*/__pycache__/

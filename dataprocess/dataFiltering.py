@@ -7,7 +7,7 @@ import os
 import pathlib
 
 # 使うカテゴリの名前を取得 
-categories = text2list("../categories.txt")
+categories = text2list("categories.txt")
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
@@ -16,13 +16,13 @@ categories_size = len(categories)
 finished = 0
 
 for category in categories:
-    if(os.path.isfile("../filtered_data/" + category.replace(" ","_") + ".npy")):
+    if(os.path.isfile("./filtered_data/" + category.replace(" ","_") + ".npy")):
         continue
     else:
-        path = pathlib.Path("../filtered_data/" + category.replace(" ","_") + ".npy")
+        path = pathlib.Path("./filtered_data/" + category.replace(" ","_") + ".npy")
         path.touch()
 
-    dataset = np.load("../raw_data/" + category.replace(" ","_") + ".npy")
+    dataset = np.load("./raw_data/" + category.replace(" ","_") + ".npy")
     text = clip.tokenize([category]).to(device)
     good_dataset = []
     good_count = 0
@@ -49,11 +49,11 @@ for category in categories:
             break
     
     # npyファイルとして抽出したデータを保存
-    os.makedirs("../filtered_data", exist_ok=True)
+    os.makedirs("./filtered_data", exist_ok=True)
     good_dataset = np.array(good_dataset)
-    np.save("../filtered_data/" + category.replace(" ","_") + ".npy", good_dataset)
+    np.save("./filtered_data/" + category.replace(" ","_") + ".npy", good_dataset)
 
     finished += 1
 
     print("The number of dataset is {} (category is ".format(good_count) + category + ")")
-    print("../filtered_data/" + category.replace(" ","_") + ".npy is created! [{}/{} is finished.]".format(finished, categories_size))
+    print("./filtered_data/" + category.replace(" ","_") + ".npy is created! [{}/{} is finished.]".format(finished, categories_size))

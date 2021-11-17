@@ -17,18 +17,21 @@ from sample_utils import get_data_loader, generate_images, save_gif
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DCGANS MNIST')
-    parser.add_argument('--num-epochs', type=int, default=100)
+    parser.add_argument('--num-epochs', type=int, default=1000)
     parser.add_argument('--ndf', type=int, default=32, help='Number of features to be used in Discriminator network')
     parser.add_argument('--ngf', type=int, default=32, help='Number of features to be used in Generator network')
     parser.add_argument('--nz', type=int, default=100, help='Size of the noise')
-    parser.add_argument('--d-lr', type=float, default=0.0002, help='Learning rate for the discriminator')
-    parser.add_argument('--g-lr', type=float, default=0.0002, help='Learning rate for the generator')
+    parser.add_argument('--d-lr', type=float, default=0.00002, help='Learning rate for the discriminator')
+    parser.add_argument('--g-lr', type=float, default=0.00002, help='Learning rate for the generator')
     parser.add_argument('--nc', type=int, default=1, help='Number of input channels. Ex: for grayscale images: 1 and RGB images: 3 ')
     parser.add_argument('--batch-size', type=int, default=128, help='Batch size')
     parser.add_argument('--num-test-samples', type=int, default=16, help='Number of samples to visualize')
     parser.add_argument('--output-path', type=str, default='./results/', help='Path to save the images')
-    parser.add_argument('--fps', type=int, default=5, help='frames-per-second value for the gif')
+    parser.add_argument('--fps', type=int, default=50, help='frames-per-second value for the gif')
     parser.add_argument('--use-fixed', action='store_true', help='Boolean to use fixed noise or not')
+
+    parser.add_argument('--category', type=str, default="apple", help='choose the category')
+    parser.add_argument('--load_path', type=str, default='./filtered_data',help='path for the directry of the data')
 
     opt = parser.parse_args()
     print(opt)
@@ -36,7 +39,7 @@ if __name__ == '__main__':
         os.makedirs(opt.output_path, exist_ok=True)
 
     # Gather MNIST Dataset    
-    train_loader = get_data_loader(opt.batch_size)
+    train_loader = get_data_loader(opt.batch_size, opt.category, opt.load_path)
 
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -101,8 +104,10 @@ if __name__ == '__main__':
                 print('Epoch [{}/{}], step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, Discriminator - D(G(x)): {:.2f}, Generator - D(G(x)): {:.2f}'.format(epoch+1, opt.num_epochs, 
                                                             i+1, num_batches, lossD.item(), lossG.item(), D_x, D_G_z1, D_G_z2))
         netG.eval()
-        generate_images(epoch, opt.output_path, fixed_noise, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
+        generate_images(opt.load_path, opt.category, epoch, opt.output_path, fixed_noise, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
         netG.train()
 
     # Save gif:
-    save_gif(opt.output_path, opt.fps, fixed_noise=opt.use_fixed)
+    save_gif(opt.load_path, opt.category, opt.output_path, opt.fps, fixed_noise=opt.use_fixed)
+
+    print("finished (category is {})".format(opt.category))

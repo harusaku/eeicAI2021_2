@@ -8,7 +8,7 @@ import clip
 from network import Generator
 
 device = "cpu"
-model_path = "./results/wgan/model/model_20"
+model_path = "./model/model_20categories"
 G_feature = 32
 netG = Generator(1, 512, G_feature).to(device)
 netG.load_state_dict(torch.load(model_path, map_location=torch.device(device)))

@@ -11,14 +11,14 @@ import numpy as np
 from torch.autograd import Variable
 from torchvision.utils import save_image
 
-from network import Generator, Discriminator
+from Wnetwork import Generator, Discriminator
 from utils import get_data_loader, generate_images, save_gif, txt2list, weight_init
 
 
 # import clip
 ### To-do: replace all "noise"
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='clipdraw dcgan')
+    parser = argparse.ArgumentParser(description='clipdraw dccwgan')
     parser.add_argument('--num-epochs', type=int, default=100)
     parser.add_argument('--ndf', type=int, default=32, help='Number of features to be used in Discriminator network')
     parser.add_argument('--ngf', type=int, default=32, help='Number of features to be used in Generator network')
@@ -53,13 +53,22 @@ if __name__ == '__main__':
     netG = Generator(opt.nc, opt.nv, opt.ngf).to(device)
     netD = Discriminator(opt.nc, opt.nv, opt.ndf).to(device)
 
+    # TRICK: WGAN
+    netG.apply(weight_init)
+    netD.apply(weight_init)
+
     # loss function
-    criterion = nn.BCELoss()
+    # TRICK: WGAN
+    # criterion = nn.BCELoss()
+    tensor_one = torch.FloatTensor([1]).to(device)
+    tensor_mone = -1*tensor_one
 
     # optimizers
-    optimizerD = optim.Adam(netD.parameters(), lr=opt.d_lr)
-    optimizerD_slow = optim.Adam(netD.parameters(), lr=opt.d_lr/2) 
-    optimizerG = optim.Adam(netG.parameters(), lr=opt.g_lr)
+    # TRICK: WGAN -- use the same lr for D and G
+    optimizerD = optim.RMSprop(netD.parameters(), lr=opt.d_lr) 
+    optimizerG = optim.RMSprop(netG.parameters(), lr=opt.d_lr) 
+    # optimizerD = optim.Adam(netD.parameters(), lr=opt.d_lr) 
+    # optimizerG = optim.Adam(netG.parameters(), lr=opt.g_lr)
     
 
     # initialize other variables
@@ -90,70 +99,99 @@ if __name__ == '__main__':
             random_images = random_images.to(device)
             bs = real_images.shape[0]
             input_features = text_features.reshape((bs, opt.nv, 1, 1))
+            tensor_one = torch.zeros(bs).to(device)+1
+            tensor_mone = torch.zeros(bs).to(device)-1
             broadcasted_features = torch.zeros(bs, opt.nv, 28, 28, device = device)
             discriminator_features = broadcasted_features + input_features # To allow conv inside netD
-            
             ##############################
             #   Training discriminator   #
             ##############################
-            netD.zero_grad()
+            # WGAN: train D:G = 6:1
+            for _ in range(3):
+                netD.zero_grad()
+                # TRICK: WGAN, clip parameters in netD
+                for parm in netD.parameters():
+                        parm.data.clamp_(-0.01,0.01)
 
-            # REAL
-            label = torch.full((bs,), real_label, device=device)
-            output1 = netD(real_images, discriminator_features)
-            lossD_real = criterion(output1, label.type(torch.float))
-            lossD_real.backward()
-            lossD_real = torch.mean(output1)
-            D_x = output1.mean().item()
+                # REAL
+                label = torch.full((bs,), real_label, device=device)
+                output1 = netD(real_images, discriminator_features)
+                # lossD_real = criterion(output1, label.type(torch.float))
+                # lossD_real.backward()
+                output1.backward(tensor_one)
+                # lossD_real = torch.mean(output1)
+                D_x = output1.mean().item()
+                
+                # FAKE
+                # TRICK2 Decaying noise:
+                # noise = torch.randn(bs, opt.nv, 1, 1, device=device)*(1-epoch/opt.num_epochs)
+                noise = torch.randn(bs, opt.nv, 1, 1, device=device)
+                # noise = torch.zeros(bs, opt.nv, 1, 1, device=device)
+                fake_images = netG(input_features, noise) # Testing zero noise
+                label.fill_(fake_label)
+                output2 = netD(fake_images.detach(), discriminator_features)
+                # lossD_fake = criterion(output2, label.type(torch.float))
+                # lossD_fake.backward()
+                output2.backward(tensor_mone)
+                # D_G_z1 = output1.mean().item() 
+                # lossD = lossD_real + lossD_fake
+                # lossD_fake = torch.mean(output2)
+                # Wasserstein_D = - lossD_real + lossD_fake
+                # Wasserstein_D.backward()
+                optimizerD.step()
+                Wasserstein_D = output1 - output2
+
+                # Train again with real & real-but-wrong images
+                netD.zero_grad()
+                # TRICK: WGAN, clip parameters in netD
+                for parm in netD.parameters():
+                        parm.data.clamp_(-0.01,0.01)
+                output1 = netD(real_images, discriminator_features)
+                output1.backward(tensor_one)
+                output2 = netD(random_images, discriminator_features)
+                output2.backward(tensor_mone)
+                optimizerD.step()
+            # Train once again with D
+            # output = netD(real_images, discriminator_features)
+            # lossD_real = criterion(output, label.type(torch.float))
+            # lossD_real.backward()
+            # D_x = output.mean().item()
             
-            # FAKE
-            # TRICK2 Decaying noise:
-            # noise = torch.randn(bs, opt.nv, 1, 1, device=device)*(1-epoch/opt.num_epochs)
-            noise = torch.randn(bs, opt.nv, 1, 1, device=device)
-            fake_images = netG(input_features, noise)
-            label.fill_(fake_label)
-            output2 = netD(fake_images.detach(), discriminator_features)
-            lossD_fake = criterion(output2, label.type(torch.float))
-            lossD_fake.backward()
-            D_G_z1 = output1.mean().item() 
-            optimizerD_slow.step()
-            
-            # Train again with real & real-but-wrong images
-            netD.zero_grad()
-            
-            label = torch.full((bs,), real_label, device=device)
-            output1 = netD(real_images, discriminator_features)
-            lossD_real = criterion(output1, label.type(torch.float))
-            lossD_real.backward()
-            D_x = output1.mean().item()
-            optimizerD.step()
-            
-            label.fill_(fake_label)
-            output2 = netD(random_images, discriminator_features)
-            lossD_wrong = criterion(output2, label.type(torch.float))
-            lossD_wrong.backward()
-            D_G_z1 = output1.mean().item() 
-            optimizerD.step()
+            # Then show text_features to the discriminator
+            # fake_images = netG(text_features.reshape((bs, opt.nv, 1, 1)))
+            # label.fill_(fake_label)
+            # output = netD(fake_images.detach())
+            # lossD_fake = criterion(output, label.type(torch.float))
+            # lossD_fake.backward()
+            # D_G_z1 = output.mean().item()
+            # lossD = lossD_real + lossD_fake
+            # optimizerD.step()
+
 
             ##########################
             #   Training generator   #
             ##########################
-            for _ in range(4):
+            for _ in range(1):
                 netG.zero_grad()
                 label.fill_(real_label)
                 noise = torch.randn(bs, opt.nv, 1, 1, device=device)
+                # noise = torch.zeros(bs, opt.nv, 1, 1, device=device)
                 fake_images = netG(input_features, noise)
                 output = netD(fake_images, discriminator_features)
-                lossG = criterion(output, label.type(torch.float))
-                lossG.backward()
-                D_G_z2 = output.mean().item()
+                # lossG = criterion(output, label.type(torch.float))
+                # lossG.backward()
+                ##lossG = - torch.mean(output)
+                ##lossG.backward()
+                output.backward(tensor_one)
+                # D_G_z2 = output.mean().item()
                 optimizerG.step()
 
-            if (i+1)%50 == 0:
-                print('Epoch [{}/{}], step [{}/{}], d_loss_real: {:.4f}, d_loss_fake: {:.4f},  d_loss_wrong: {:.4f}, g_loss: {:.4f}'.format(epoch+1, opt.num_epochs, 
-                      i+1, num_batches, lossD_real.item(), lossD_fake.item(), lossD_wrong.item(), lossG.item()))
+            # if (i+1)%50 == 0:
+            #     print('Epoch [{}/{}], step [{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, D(x): {:.2f}, Discriminator - D(G(x)): {:.2f}, Generator - D(G(x)): {:.2f}'.format(epoch+1, opt.num_epochs, 
+            #           i+1, num_batches, lossD.item(), lossG.item(), D_x, D_G_z1, D_G_z2))
         
         print('Epoch[{}/{}]'.format(epoch+1, opt.num_epochs))
+        print(Wasserstein_D)
         netG.eval()
         generate_images(epoch, opt.output_path, label_ls, test_features, test_noise, opt.num_test_samples, netG, device, use_fixed=opt.use_fixed)
         # Save model

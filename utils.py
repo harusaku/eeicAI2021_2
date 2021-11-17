@@ -73,3 +73,12 @@ def txt2list(filename):
         ret.append(line.rstrip())
     return ret
     
+# TRICK: WGAN
+def weight_init(m):
+    # weight_initialization: important for wgan
+    class_name=m.__class__.__name__
+    if class_name.find('Conv')!=-1:
+        m.weight.data.normal_(0,0.02)
+    elif class_name.find('Norm')!=-1:
+        m.weight.data.normal_(1.0,0.02)
+#     else:print(class_name)

@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 import glob
 import numpy as np
 import clip
+import random
 class MyDataset(Dataset):
     def __init__(self, category_ls, root=None, train=True, transform=None, device='cpu'):
         self.root = root
@@ -15,6 +16,9 @@ class MyDataset(Dataset):
         # to avoid moving data between CPU and GPU
         ### CLIP Features
         clip_model, preprocess = clip.load("ViT-B/32", device=device)
+        # TRICK5: trying to improve the behaviour of CLIP by identifying the subject as sketches
+        # for word in category_ls:
+        #     word = "a sketch of " + word
         tokenized_text = clip.tokenize(category_ls).to(device)
         with torch.no_grad():
             self.text_features = clip_model.encode_text(tokenized_text)
@@ -41,7 +45,11 @@ class MyDataset(Dataset):
             data_img = self.transform(data_img)
         category = self.all_data[idx][1]
         text_feature = self.all_data[idx][2]
-        return [data_img, category, text_feature]
+        rand_img = Image.fromarray(random.choice(self.all_data)[0]).convert("L")
+        if self.transform is not None:
+            rand_img = self.transform(rand_img)
+        return [data_img, category, text_feature, rand_img]
 
     def get_features(self):
         return self.text_features
+    

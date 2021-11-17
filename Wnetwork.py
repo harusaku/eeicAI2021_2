@@ -75,11 +75,12 @@ class Discriminator(nn.Module):
                 nn.LeakyReLU(0.2, inplace=True),
                 
                 # Weakening the discriminator with dropout
-                nn.Dropout(p=0.2),
+                # nn.Dropout(p=0.5),
 
                 nn.Conv2d(ndf * 4, 1, 4, 1, 0, bias=False),
 
-                nn.Sigmoid()
+                # TRICK: WGAN
+                # nn.Sigmoid()
             )
 
     def forward(self, image, text):

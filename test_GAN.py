@@ -8,8 +8,9 @@ import clip
 from network import Generator
 
 device = "cpu"
-model_path = "./results/tricks/model/model_100"
-netG = Generator(1, 512, 32).to(device)
+model_path = "./results/wgan/model/model_20"
+G_feature = 32
+netG = Generator(1, 512, G_feature).to(device)
 netG.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 test_noise = torch.zeros(1, 512, 1, 1, device=device)
 clip_model, preprocess = clip.load("ViT-B/32", device=device)
@@ -25,7 +26,7 @@ while True:
     plt.imshow(image.data.cpu().numpy().reshape(28,28), cmap='Greys')
     os.makedirs("test/", exist_ok=True)
     plt.savefig("test/"+input_text+".png")
-    print("Result generated at " + "./test/"+input_text+".png")
+    print("Result generated at " + "./test/"+input_text+".png\n\n")
 
 
 

@@ -1,3 +1,7 @@
+###
+Tricks: Dropout in netD, repeated training with image_real, decaying noise, convolution of noise in netG instead of concatenation
+###
+
 /home/u00676/exp/eeicAI2021_2/utils.py:39: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`).
   fig, ax = plt.subplots(size_figure_grid, size_figure_grid, figsize=(6,6))
 Namespace(batch_size=128, d_lr=2e-06, fps=5, g_lr=0.0002, nc=1, ndf=32, ngf=32, num_epochs=100, num_test_samples=16, nv=512, output_path='./results/tricks/', use_fixed=False)

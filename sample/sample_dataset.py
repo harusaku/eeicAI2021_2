@@ -6,7 +6,7 @@ import glob
 import numpy as np
 class MyDataset(Dataset):
 	def __init__(self, category, root=None, train=True, transform=None):
-		self.root = root
+		self.root = root + "/"
 		self.transform = transform
 		mode = 'train' if train else 'test'
 		# TODO class辞書の定義

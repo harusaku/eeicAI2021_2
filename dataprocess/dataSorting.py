@@ -9,7 +9,7 @@ import os
 #######################################
 ## 使うカテゴリの名前を代入          ##
 #######################################
-category = "airplane"
+category = "hand"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
@@ -50,7 +50,7 @@ for data in dataset:
     if good_count == 16 and bad_count == 16:
         break
 
-    if data_count > 500:
+    if data_count > 100000:
         break
 # fig = plt.figure()
 # fig.hist(similarity)

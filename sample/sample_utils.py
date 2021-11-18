@@ -17,6 +17,7 @@ from sample_dataset import MyDataset
 #######################################
 
 def get_data_loader(batch_size, category, load_path):
+    load_path = load_path.replace("/","").replace(".","")
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=(0.1307, ), std=(0.3081, ))])

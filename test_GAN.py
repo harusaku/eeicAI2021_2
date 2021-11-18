@@ -9,7 +9,7 @@ from network import Generator
 from utils import txt2list
 
 device = "cpu"
-model_path = "./model/model_20categories"
+model_path = "./model/model_full"
 G_feature = 32
 netG = Generator(1, 512, G_feature).to(device)
 netG.load_state_dict(torch.load(model_path, map_location=torch.device(device)))

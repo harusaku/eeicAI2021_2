@@ -79,7 +79,7 @@ By the end of this experiment in 2021/11, we managed to retrieve an abstract sha
 ```
 $ python3 ./sample/sample_DCgan.py --category {category}
 ```
-To train this DCGAN, specify one category from Quick, Draw! dataset (check [categories.txt](https://github.com/harusaku/eeicAI2021_2/blob/main/categories.txt) with the --category option and similar images will be generated. Refer to the py file for other training options.
+To train this DCGAN, specify one category from Quick, Draw! dataset with the --category option (check [categories.txt](https://github.com/harusaku/eeicAI2021_2/blob/main/categories.txt)) and similar images will be generated. Refer to the py file for other training options.
 
 ### Train the DCCGAN with CLIP embedded vectors
 ```

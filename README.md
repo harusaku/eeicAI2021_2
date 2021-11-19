@@ -79,7 +79,6 @@ By the end of this experiment in 2021/11, we managed to retrieve an abstract sha
 ```
 $ python3 ./sample/sample_DCgan.py --category {category}
 ```
-You 
 To train this DCGAN, specify one category from Quick, Draw! dataset (check [categories.txt](https://github.com/harusaku/eeicAI2021_2/blob/main/categories.txt) with the --category option and similar images will be generated. Refer to the py file for other training options.
 
 ### Train the DCCGAN with CLIP embedded vectors
@@ -87,7 +86,9 @@ To train this DCGAN, specify one category from Quick, Draw! dataset (check [cate
 $ python3 clipdraw_DCgan.py
 ```
 (This model is still behaving poorly.)
+
 You will need to install the CLIP Python package first. ([Check CLIP's github page](https://github.com/openai/CLIP))
+
 This trains the DCCGAN with the categories embedded to vectors using CLIP. Refer to the py file for other trianing options.
 
 ### Generate images with the model trained above
@@ -95,4 +96,5 @@ This trains the DCCGAN with the categories embedded to vectors using CLIP. Refer
 $ python3 test_GAN.py
 ```
 This will generate images with any text inputted by embedding the text via CLIP and sending the vector to the generator trained above.
+
 The output images are noisy but the some very abstract outlines of both (1) trained text and (2) unknown text can be observed.

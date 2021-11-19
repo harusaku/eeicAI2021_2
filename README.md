@@ -97,4 +97,4 @@ $ python3 test_GAN.py
 ```
 This will generate images with any text inputted by embedding the text via CLIP and sending the vector to the generator trained above.
 
-The output images are noisy but the some very abstract outlines of both (1) trained text and (2) unknown text can be observed.
+The output images are noisy but some very abstract outlines of both (1) trained text and (2) unknown text can be observed.
